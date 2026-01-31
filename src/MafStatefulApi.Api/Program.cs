@@ -1,7 +1,8 @@
 using MafStatefulApi.Api.Agents;
 using MafStatefulApi.Api.Endpoints;
 using MafStatefulApi.Api.State;
-using Microsoft.SemanticKernel;
+using OpenAI;
+using Azure.AI.OpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +31,8 @@ else
     Console.WriteLine("Using InMemory for session storage");
 }
 
-// Configure Semantic Kernel with Azure OpenAI or OpenAI
-ConfigureSemanticKernel(builder);
+// Configure Microsoft Agent Framework with Azure OpenAI or OpenAI
+ConfigureAgentFramework(builder);
 
 // Register agent components
 builder.Services.AddSingleton<AgentFactory>();
@@ -54,12 +55,12 @@ app.MapChatEndpoints();
 app.Run();
 
 /// <summary>
-/// Configures Semantic Kernel with the appropriate AI service.
+/// Configures Microsoft Agent Framework with the appropriate AI service.
 /// Supports Azure OpenAI, OpenAI, or a mock for testing.
 /// </summary>
-static void ConfigureSemanticKernel(WebApplicationBuilder builder)
+static void ConfigureAgentFramework(WebApplicationBuilder builder)
 {
-    var kernelBuilder = Kernel.CreateBuilder();
+    const string OpenAIApiBaseUrl = "https://api.openai.com/v1/";
     
     var azureEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
     var azureDeployment = builder.Configuration["AzureOpenAI:DeploymentName"];
@@ -71,18 +72,19 @@ static void ConfigureSemanticKernel(WebApplicationBuilder builder)
     if (!string.IsNullOrEmpty(azureEndpoint) && !string.IsNullOrEmpty(azureDeployment) && !string.IsNullOrEmpty(azureApiKey))
     {
         // Use Azure OpenAI
-        kernelBuilder.AddAzureOpenAIChatCompletion(
-            deploymentName: azureDeployment,
-            endpoint: azureEndpoint,
-            apiKey: azureApiKey);
+        var azureClient = new AzureOpenAIClient(
+            new Uri(azureEndpoint),
+            new System.ClientModel.ApiKeyCredential(azureApiKey));
+        var chatClient = azureClient.GetChatClient(azureDeployment);
+        builder.Services.AddSingleton(chatClient);
         Console.WriteLine($"Using Azure OpenAI: {azureEndpoint}");
     }
     else if (!string.IsNullOrEmpty(openAiApiKey))
     {
         // Use OpenAI
-        kernelBuilder.AddOpenAIChatCompletion(
-            modelId: openAiModel,
-            apiKey: openAiApiKey);
+        var openAiClient = new OpenAIClient(openAiApiKey);
+        var chatClient = openAiClient.GetChatClient(openAiModel);
+        builder.Services.AddSingleton(chatClient);
         Console.WriteLine($"Using OpenAI model: {openAiModel}");
     }
     else
@@ -90,13 +92,17 @@ static void ConfigureSemanticKernel(WebApplicationBuilder builder)
         // For development without API keys, use a mock/echo response
         Console.WriteLine("Warning: No AI provider configured. Using mock responses.");
         Console.WriteLine("Set AzureOpenAI:* or OpenAI:* configuration to enable real AI.");
-        kernelBuilder.AddOpenAIChatCompletion(
-            modelId: "mock",
-            apiKey: "mock-key",
-            httpClient: new HttpClient(new MockChatHandler()));
+        
+        // Create a mock ChatClient using a custom HttpClient with mock handler
+        var httpClient = new HttpClient(new MockChatHandler());
+        httpClient.BaseAddress = new Uri(OpenAIApiBaseUrl);
+        var openAiClient = new OpenAIClient(new System.ClientModel.ApiKeyCredential("mock-key"), new OpenAIClientOptions
+        {
+            Transport = new System.ClientModel.Primitives.HttpClientPipelineTransport(httpClient)
+        });
+        var chatClient = openAiClient.GetChatClient("mock");
+        builder.Services.AddSingleton(chatClient);
     }
-    
-    builder.Services.AddSingleton(kernelBuilder.Build());
 }
 
 /// <summary>
