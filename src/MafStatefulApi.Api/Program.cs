@@ -60,6 +60,8 @@ app.Run();
 /// </summary>
 static void ConfigureAgentFramework(WebApplicationBuilder builder)
 {
+    const string OpenAIApiBaseUrl = "https://api.openai.com/v1/";
+    
     var azureEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
     var azureDeployment = builder.Configuration["AzureOpenAI:DeploymentName"];
     var azureApiKey = builder.Configuration["AzureOpenAI:ApiKey"];
@@ -93,7 +95,7 @@ static void ConfigureAgentFramework(WebApplicationBuilder builder)
         
         // Create a mock ChatClient using a custom HttpClient with mock handler
         var httpClient = new HttpClient(new MockChatHandler());
-        httpClient.BaseAddress = new Uri("https://api.openai.com/v1/");
+        httpClient.BaseAddress = new Uri(OpenAIApiBaseUrl);
         var openAiClient = new OpenAIClient(new System.ClientModel.ApiKeyCredential("mock-key"), new OpenAIClientOptions
         {
             Transport = new System.ClientModel.Primitives.HttpClientPipelineTransport(httpClient)
