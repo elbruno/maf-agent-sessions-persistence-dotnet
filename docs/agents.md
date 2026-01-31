@@ -87,11 +87,13 @@ var builder = DistributedApplication.CreateBuilder(args);
 // Infrastructure
 var cache = builder.AddRedis("cache");
 var ollama = builder.AddOllama("ollama").WithDataVolume();
+var ollamaModel = ollama.AddModel("chat-model", "llama3.2:1b");
 
 // API with references
 var api = builder.AddProject<Projects.MafStatefulApi_Api>("api")
     .WithReference(cache)
-    .WithReference(ollama);
+    .WithReference(ollamaModel)
+    .WaitFor(ollamaModel);
 
 // Client with API reference
 builder.AddProject<Projects.MafStatefulApi_Client>("client")
@@ -108,9 +110,9 @@ Ollama runs automatically via Aspire. The first time you run:
 3. Subsequent runs use the cached model (via data volume)
 
 **To change the model:**
-```bash
-cd src/MafStatefulApi.AppHost
-dotnet user-secrets set "Parameters:Ollama-Model" "llama3.1:latest"
+Modify the `AddModel` call in `src/MafStatefulApi.AppHost/AppHost.cs`:
+```csharp
+var ollamaModel = ollama.AddModel("chat-model", "llama3.1:latest");
 ```
 
 ### Using Azure Foundry Models (Production)

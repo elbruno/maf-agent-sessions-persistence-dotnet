@@ -5,7 +5,7 @@ This document describes how to configure the MAF Stateful Aspire Sample.
 ## AI Provider Configuration
 
 The sample supports two AI providers:
-1. **Ollama** (default) - Local AI models for development
+1. **Ollama** (default) - Local AI models for development, managed by Aspire
 2. **Azure Foundry Models (Azure OpenAI)** - Cloud-based AI for production
 
 ### Ollama Configuration (Default)
@@ -13,16 +13,19 @@ The sample supports two AI providers:
 Ollama is the default provider and runs locally via Docker container managed by Aspire.
 
 The Aspire AppHost automatically:
-- Starts an Ollama container
+- Starts an Ollama container with the `llama3.2:1b` model
 - Persists downloaded models via Docker volume
-- Makes the Ollama API available to the API project
+- Makes the Ollama API available to the API project via service discovery
 
-**Configuration Parameters:**
+The model is defined in `AppHost.cs`:
+```csharp
+var ollama = builder.AddOllama("ollama")
+    .WithDataVolume();
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `Ollama:Endpoint` | Ollama API endpoint | `http://localhost:11434` |
-| `Ollama:Model` | Model name to use | `llama3.2:1b` |
+var ollamaModel = ollama.AddModel("chat-model", "llama3.2:1b");
+```
+
+To use a different model, modify the `AddModel` call in `AppHost.cs`.
 
 ### Azure Foundry Models (Azure OpenAI) Configuration
 
@@ -53,10 +56,6 @@ Secrets are defined as parameters in the Aspire AppHost and passed to projects v
    dotnet user-secrets set "Parameters:AzureOpenAI-Endpoint" "https://your-resource.openai.azure.com/"
    dotnet user-secrets set "Parameters:AzureOpenAI-DeploymentName" "gpt-4o"
    dotnet user-secrets set "Parameters:AzureOpenAI-ApiKey" "your-api-key"
-
-   # Ollama configuration (optional, has defaults)
-   dotnet user-secrets set "Parameters:Ollama-Endpoint" "http://localhost:11434"
-   dotnet user-secrets set "Parameters:Ollama-Model" "llama3.2:1b"
    ```
 
 ### Configuring via appsettings.json
@@ -68,9 +67,7 @@ You can also configure non-secret values in `src/MafStatefulApi.AppHost/appsetti
   "Parameters": {
     "AzureOpenAI-Endpoint": "",
     "AzureOpenAI-DeploymentName": "",
-    "AzureOpenAI-ApiKey": "",
-    "Ollama-Endpoint": "http://localhost:11434",
-    "Ollama-Model": "llama3.2:1b"
+    "AzureOpenAI-ApiKey": ""
   }
 }
 ```
@@ -137,9 +134,7 @@ Configuration values are resolved in this order (highest priority first):
   "Parameters": {
     "AzureOpenAI-Endpoint": "",
     "AzureOpenAI-DeploymentName": "",
-    "AzureOpenAI-ApiKey": "",
-    "Ollama-Endpoint": "http://localhost:11434",
-    "Ollama-Model": "llama3.2:1b"
+    "AzureOpenAI-ApiKey": ""
   }
 }
 ```
@@ -162,10 +157,6 @@ Configuration values are resolved in this order (highest priority first):
     "Endpoint": "",
     "DeploymentName": "",
     "ApiKey": ""
-  },
-  "Ollama": {
-    "Endpoint": "http://localhost:11434",
-    "Model": "llama3.2:1b"
   }
 }
 ```

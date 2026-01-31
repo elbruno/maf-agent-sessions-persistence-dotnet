@@ -3,7 +3,6 @@ using MafStatefulApi.Api.Endpoints;
 using MafStatefulApi.Api.State;
 using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
-using OllamaSharp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,7 +56,7 @@ app.Run();
 
 /// <summary>
 /// Configures Microsoft Agent Framework with the appropriate AI service.
-/// Supports Ollama or Azure Foundry Models (Azure OpenAI).
+/// Supports Ollama (via Aspire integration) or Azure Foundry Models (Azure OpenAI).
 /// </summary>
 static void ConfigureAgentFramework(WebApplicationBuilder builder)
 {
@@ -65,10 +64,6 @@ static void ConfigureAgentFramework(WebApplicationBuilder builder)
     var azureEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
     var azureDeployment = builder.Configuration["AzureOpenAI:DeploymentName"];
     var azureApiKey = builder.Configuration["AzureOpenAI:ApiKey"];
-    
-    // Ollama configuration
-    var ollamaEndpoint = builder.Configuration["Ollama:Endpoint"] ?? "http://localhost:11434";
-    var ollamaModel = builder.Configuration["Ollama:Model"] ?? "llama3.2:1b";
     
     if (!string.IsNullOrEmpty(azureEndpoint) && !string.IsNullOrEmpty(azureDeployment) && !string.IsNullOrEmpty(azureApiKey))
     {
@@ -83,10 +78,10 @@ static void ConfigureAgentFramework(WebApplicationBuilder builder)
     }
     else
     {
-        // Use Ollama (default for local development)
-        var ollamaClient = new OllamaApiClient(new Uri(ollamaEndpoint), ollamaModel);
-        builder.Services.AddSingleton<IChatClient>(ollamaClient);
-        Console.WriteLine($"Using Ollama at {ollamaEndpoint} with model: {ollamaModel}");
+        // Use Ollama via Aspire integration (default for local development)
+        // The connection is configured via the Aspire AppHost WithReference
+        builder.AddOllamaApiClient("chat-model").AddChatClient();
+        Console.WriteLine("Using Ollama via Aspire integration");
     }
 }
 
