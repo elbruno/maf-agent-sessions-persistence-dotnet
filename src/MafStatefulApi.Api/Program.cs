@@ -73,13 +73,14 @@ static void ConfigureAgentFramework(WebApplicationBuilder builder)
             new System.ClientModel.ApiKeyCredential(azureApiKey));
         var chatClient = azureClient.GetChatClient(azureDeployment);
         builder.Services.AddSingleton(chatClient);
+        // Register as IChatClient using the extension method for compatibility with Microsoft.Extensions.AI
         builder.Services.AddSingleton<IChatClient>(chatClient.AsIChatClient());
         Console.WriteLine($"Using Azure Foundry Models: {azureEndpoint}");
     }
     else
     {
         // Use Ollama via Aspire integration (default for local development)
-        // The connection is configured via the Aspire AppHost WithReference
+        // "chat-model" must match the model name defined in AppHost.cs (ollama.AddModel("chat-model", ...))
         builder.AddOllamaApiClient("chat-model").AddChatClient();
         Console.WriteLine("Using Ollama via Aspire integration");
     }
