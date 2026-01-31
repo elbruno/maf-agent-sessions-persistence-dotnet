@@ -77,6 +77,46 @@ The console will display a URL for the Aspire Dashboard (typically `https://loca
     └── MafStatefulApi.Tests/        # Integration tests
 ```
 
+## Agent Implementation
+
+The application creates and registers the AI agent directly on program startup:
+
+### Agent Registration
+
+In `Program.cs`, the agent is registered as a singleton service:
+
+```csharp
+// Create and register the agent directly on startup
+builder.Services.AddSingleton(sp =>
+{
+    var chatClient = sp.GetRequiredService<IChatClient>();
+    var logger = sp.GetRequiredService<ILogger<Program>>();
+    
+    // Create the agent with predefined instructions
+    var agent = chatClient.CreateAIAgent(
+        instructions: "You are a helpful AI assistant...",
+        name: "AssistantAgent"
+    );
+    
+    return agent;
+});
+```
+
+This approach:
+- Creates the agent on application startup
+- Makes it available through dependency injection
+- Keeps the code simple and easy to understand
+- The agent is stateless and shared across all requests
+
+### Agent Execution
+
+The `AgentRunner` class receives the agent through dependency injection and manages:
+- Loading conversation state (AgentThread) from the session store
+- Running the agent with the user's message
+- Saving the updated conversation state
+
+This separation of concerns makes the code maintainable and testable.
+
 ## Aspire Orchestration
 
 The AppHost project (`src/MafStatefulApi.AppHost`) orchestrates all services:
@@ -157,8 +197,8 @@ dotnet test --filter "Chat_NewConversation_ReturnsNewConversationId"
 
 ### Modifying Agent Behavior
 
-1. Edit `Agents/AgentFactory.cs` to change agent instructions
-2. Edit `Agents/AgentRunner.cs` to modify execution flow
+1. Edit `Program.cs` to change agent instructions in the agent registration code
+2. The agent is created on application startup, so restart the application to see changes
 
 ## Debugging
 
