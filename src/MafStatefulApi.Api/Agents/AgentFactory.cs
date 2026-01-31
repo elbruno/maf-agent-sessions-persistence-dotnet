@@ -1,40 +1,41 @@
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
+using Microsoft.Extensions.AI;
+using Microsoft.Agents.AI;
+using OpenAI.Chat;
 
 namespace MafStatefulApi.Api.Agents;
 
 /// <summary>
-/// Factory for creating ChatCompletionAgent instances.
+/// Factory for creating AIAgent instances using Microsoft Agent Framework.
 /// Agents are stateless - all state is managed via AgentThread.
 /// </summary>
 public class AgentFactory
 {
-    private readonly Kernel _kernel;
+    private readonly ChatClient _chatClient;
     private readonly ILogger<AgentFactory> _logger;
 
-    public AgentFactory(Kernel kernel, ILogger<AgentFactory> logger)
+    public AgentFactory(ChatClient chatClient, ILogger<AgentFactory> logger)
     {
-        _kernel = kernel;
+        _chatClient = chatClient;
         _logger = logger;
     }
 
     /// <summary>
-    /// Creates a new ChatCompletionAgent with predefined instructions.
+    /// Creates a new AIAgent with predefined instructions.
     /// </summary>
-    public ChatCompletionAgent CreateAgent()
+    public AIAgent CreateAgent()
     {
-        _logger.LogDebug("Creating new ChatCompletionAgent instance");
+        _logger.LogDebug("Creating new AIAgent instance");
         
-        return new ChatCompletionAgent
-        {
-            Name = "AssistantAgent",
-            Instructions = """
+        // Convert ChatClient to IChatClient and create AI agent
+        var chatClientInterface = _chatClient.AsIChatClient();
+        return chatClientInterface.CreateAIAgent(
+            instructions: """
                 You are a helpful AI assistant. You help users with their questions 
                 and remember the context of the conversation. Be concise but thorough 
                 in your responses. If the user asks about previous messages, refer to 
                 the conversation history.
                 """,
-            Kernel = _kernel
-        };
+            name: "AssistantAgent"
+        );
     }
 }

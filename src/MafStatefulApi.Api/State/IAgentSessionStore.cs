@@ -1,9 +1,7 @@
-using Microsoft.SemanticKernel.Agents;
-
 namespace MafStatefulApi.Api.State;
 
 /// <summary>
-/// Interface for persisting agent chat threads (sessions) across requests.
+/// Interface for persisting agent threads (sessions) across requests.
 /// </summary>
 public interface IAgentSessionStore
 {
