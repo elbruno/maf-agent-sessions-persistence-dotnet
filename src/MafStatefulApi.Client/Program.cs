@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 Console.WriteLine("=== MAF Stateful API Client Demo ===");
 Console.WriteLine("This client uses Aspire service discovery to call the API.\n");
 
-// Build the host with service defaults (including service discovery)
+// Build the host with service defaults (service discovery, resilience with extended timeouts, OpenTelemetry)
 var builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
 

@@ -1,6 +1,7 @@
 using MafStatefulApi.Api.Agents;
 using MafStatefulApi.Api.Endpoints;
 using MafStatefulApi.Api.State;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
 
@@ -36,13 +37,13 @@ ConfigureAgentFramework(builder);
 
 // Create and register the agent directly on startup
 // The agent is stateless and shared across all requests
-builder.Services.AddSingleton(sp =>
+builder.Services.AddSingleton<AIAgent>(sp =>
 {
     var chatClient = sp.GetRequiredService<IChatClient>();
     var logger = sp.GetRequiredService<ILogger<Program>>();
-    
+
     logger.LogInformation("Creating AIAgent on startup");
-    
+
     // Create the agent with predefined instructions
     var agent = chatClient.CreateAIAgent(
         instructions: """
@@ -53,7 +54,7 @@ builder.Services.AddSingleton(sp =>
             """,
         name: "AssistantAgent"
     );
-    
+
     logger.LogInformation("AIAgent successfully created and registered");
     return agent;
 });

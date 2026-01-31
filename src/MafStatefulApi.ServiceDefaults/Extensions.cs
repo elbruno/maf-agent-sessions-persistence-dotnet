@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
@@ -28,8 +29,14 @@ public static class Extensions
 
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
-            // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+            // Turn on resilience by default with extended timeouts for AI model requests
+            // (Ollama cold starts and LLM responses can take longer than the default 10s)
+            http.AddStandardResilienceHandler(options =>
+            {
+                options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(1);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(2);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2);
+            });
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();
