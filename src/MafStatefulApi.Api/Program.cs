@@ -47,10 +47,14 @@ builder.Services.AddSingleton<AIAgent>(sp =>
     // Create the agent with predefined instructions
     var agent = chatClient.CreateAIAgent(
         instructions: """
-            You are a helpful AI assistant. You help users with their questions 
-            and remember the context of the conversation. Be concise but thorough 
-            in your responses. If the user asks about previous messages, refer to 
-            the conversation history.
+            You are a friendly and helpful AI assistant.
+            
+            Guidelines:
+            - Be concise and clear in your responses
+            - Remember context from previous messages in the conversation
+            - When asked about prior messages, reference the conversation history
+            - Use simple language that is easy to understand
+            - If you don't know something, say so honestly
             """,
         name: "AssistantAgent"
     );

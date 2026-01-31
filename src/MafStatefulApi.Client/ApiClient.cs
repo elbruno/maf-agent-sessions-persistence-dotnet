@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using Microsoft.Extensions.Logging;
 
 namespace MafStatefulApi.Client;
 
@@ -7,16 +6,9 @@ namespace MafStatefulApi.Client;
 /// Typed HttpClient for calling the MafStatefulApi.
 /// Uses service discovery to resolve the API address.
 /// </summary>
-public class ApiClient
+public class ApiClient(HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<ApiClient> _logger;
-
-    public ApiClient(HttpClient httpClient, ILogger<ApiClient> logger)
-    {
-        _httpClient = httpClient;
-        _logger = logger;
-    }
+    private readonly HttpClient _httpClient = httpClient;
 
     /// <summary>
     /// Sends a chat message to the API.
@@ -26,14 +18,10 @@ public class ApiClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The chat response from the API.</returns>
     public async Task<ChatResponse?> ChatAsync(
-        string message, 
+        string message,
         string? conversationId = null,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
-            "Sending chat request. ConversationId: {ConversationId}",
-            conversationId ?? "(new)");
-
         var request = new ChatRequest
         {
             ConversationId = conversationId,
@@ -42,14 +30,8 @@ public class ApiClient
 
         var response = await _httpClient.PostAsJsonAsync("/chat", request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        
-        var result = await response.Content.ReadFromJsonAsync<ChatResponse>(cancellationToken);
-        
-        _logger.LogInformation(
-            "Received response for conversation {ConversationId}",
-            result?.ConversationId);
-        
-        return result;
+
+        return await response.Content.ReadFromJsonAsync<ChatResponse>(cancellationToken);
     }
 
     /// <summary>
@@ -59,8 +41,6 @@ public class ApiClient
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task ResetAsync(string conversationId, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Resetting conversation {ConversationId}", conversationId);
-        
         var response = await _httpClient.PostAsync($"/reset/{conversationId}", null, cancellationToken);
         response.EnsureSuccessStatusCode();
     }

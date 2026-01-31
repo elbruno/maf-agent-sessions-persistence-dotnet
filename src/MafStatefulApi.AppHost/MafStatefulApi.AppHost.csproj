@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>288d6b7a-a941-4190-9b0e-731182bab641</UserSecretsId>
+    <!-- Display name shown in Aspire dashboard (top-left) -->
+    <AssemblyTitle>MAF Agent Sessions Demo</AssemblyTitle>
   </PropertyGroup>
 
   <ItemGroup>

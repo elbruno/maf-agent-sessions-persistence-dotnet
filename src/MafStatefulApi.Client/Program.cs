@@ -10,6 +10,12 @@ Console.WriteLine("This client uses Aspire service discovery to call the API.\n"
 var builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
 
+// Reduce logging noise from HTTP client and Polly resilience handlers
+// Keep only warnings and errors for infrastructure components
+builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+builder.Logging.AddFilter("Polly", LogLevel.Warning);
+builder.Logging.AddFilter("Microsoft.Extensions.Http", LogLevel.Warning);
+
 // Configure typed HttpClient with service discovery
 // The base address "http://api" is resolved via Aspire service discovery
 builder.Services.AddHttpClient<ApiClient>(client =>
