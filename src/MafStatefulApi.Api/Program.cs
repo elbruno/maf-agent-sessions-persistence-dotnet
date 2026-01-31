@@ -1,8 +1,9 @@
 using MafStatefulApi.Api.Agents;
 using MafStatefulApi.Api.Endpoints;
 using MafStatefulApi.Api.State;
-using OpenAI;
+using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
+using OllamaSharp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +32,7 @@ else
     Console.WriteLine("Using InMemory for session storage");
 }
 
-// Configure Microsoft Agent Framework with Azure OpenAI or OpenAI
+// Configure Microsoft Agent Framework with Ollama or Azure Foundry Models (Azure OpenAI)
 ConfigureAgentFramework(builder);
 
 // Register agent components
@@ -56,86 +57,36 @@ app.Run();
 
 /// <summary>
 /// Configures Microsoft Agent Framework with the appropriate AI service.
-/// Supports Azure OpenAI, OpenAI, or a mock for testing.
+/// Supports Ollama or Azure Foundry Models (Azure OpenAI).
 /// </summary>
 static void ConfigureAgentFramework(WebApplicationBuilder builder)
 {
-    const string OpenAIApiBaseUrl = "https://api.openai.com/v1/";
-    
+    // Azure Foundry Models (Azure OpenAI) configuration
     var azureEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
     var azureDeployment = builder.Configuration["AzureOpenAI:DeploymentName"];
     var azureApiKey = builder.Configuration["AzureOpenAI:ApiKey"];
     
-    var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
-    var openAiModel = builder.Configuration["OpenAI:Model"] ?? "gpt-4o-mini";
+    // Ollama configuration
+    var ollamaEndpoint = builder.Configuration["Ollama:Endpoint"] ?? "http://localhost:11434";
+    var ollamaModel = builder.Configuration["Ollama:Model"] ?? "llama3.2:1b";
     
     if (!string.IsNullOrEmpty(azureEndpoint) && !string.IsNullOrEmpty(azureDeployment) && !string.IsNullOrEmpty(azureApiKey))
     {
-        // Use Azure OpenAI
+        // Use Azure Foundry Models (Azure OpenAI)
         var azureClient = new AzureOpenAIClient(
             new Uri(azureEndpoint),
             new System.ClientModel.ApiKeyCredential(azureApiKey));
         var chatClient = azureClient.GetChatClient(azureDeployment);
         builder.Services.AddSingleton(chatClient);
-        Console.WriteLine($"Using Azure OpenAI: {azureEndpoint}");
-    }
-    else if (!string.IsNullOrEmpty(openAiApiKey))
-    {
-        // Use OpenAI
-        var openAiClient = new OpenAIClient(openAiApiKey);
-        var chatClient = openAiClient.GetChatClient(openAiModel);
-        builder.Services.AddSingleton(chatClient);
-        Console.WriteLine($"Using OpenAI model: {openAiModel}");
+        builder.Services.AddSingleton<IChatClient>(chatClient.AsIChatClient());
+        Console.WriteLine($"Using Azure Foundry Models: {azureEndpoint}");
     }
     else
     {
-        // For development without API keys, use a mock/echo response
-        Console.WriteLine("Warning: No AI provider configured. Using mock responses.");
-        Console.WriteLine("Set AzureOpenAI:* or OpenAI:* configuration to enable real AI.");
-        
-        // Create a mock ChatClient using a custom HttpClient with mock handler
-        var httpClient = new HttpClient(new MockChatHandler());
-        httpClient.BaseAddress = new Uri(OpenAIApiBaseUrl);
-        var openAiClient = new OpenAIClient(new System.ClientModel.ApiKeyCredential("mock-key"), new OpenAIClientOptions
-        {
-            Transport = new System.ClientModel.Primitives.HttpClientPipelineTransport(httpClient)
-        });
-        var chatClient = openAiClient.GetChatClient("mock");
-        builder.Services.AddSingleton(chatClient);
-    }
-}
-
-/// <summary>
-/// Mock HTTP handler for development without real AI credentials.
-/// Returns echo responses for testing the flow.
-/// </summary>
-internal class MockChatHandler : HttpMessageHandler
-{
-    protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, 
-        CancellationToken cancellationToken)
-    {
-        var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
-        {
-            Content = new StringContent("""
-                {
-                    "id": "mock-response",
-                    "object": "chat.completion",
-                    "created": 1234567890,
-                    "model": "mock",
-                    "choices": [{
-                        "index": 0,
-                        "message": {
-                            "role": "assistant",
-                            "content": "This is a mock response. Configure AzureOpenAI:* or OpenAI:* settings for real AI responses. I received your message and the conversation history is being tracked."
-                        },
-                        "finish_reason": "stop"
-                    }],
-                    "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30}
-                }
-                """, System.Text.Encoding.UTF8, "application/json")
-        };
-        return Task.FromResult(response);
+        // Use Ollama (default for local development)
+        var ollamaClient = new OllamaApiClient(new Uri(ollamaEndpoint), ollamaModel);
+        builder.Services.AddSingleton<IChatClient>(ollamaClient);
+        Console.WriteLine($"Using Ollama at {ollamaEndpoint} with model: {ollamaModel}");
     }
 }
 

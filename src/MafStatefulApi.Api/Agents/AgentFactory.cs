@@ -1,6 +1,5 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Agents.AI;
-using OpenAI.Chat;
 
 namespace MafStatefulApi.Api.Agents;
 
@@ -10,10 +9,10 @@ namespace MafStatefulApi.Api.Agents;
 /// </summary>
 public class AgentFactory
 {
-    private readonly ChatClient _chatClient;
+    private readonly IChatClient _chatClient;
     private readonly ILogger<AgentFactory> _logger;
 
-    public AgentFactory(ChatClient chatClient, ILogger<AgentFactory> logger)
+    public AgentFactory(IChatClient chatClient, ILogger<AgentFactory> logger)
     {
         _chatClient = chatClient;
         _logger = logger;
@@ -26,9 +25,8 @@ public class AgentFactory
     {
         _logger.LogDebug("Creating new AIAgent instance");
         
-        // Convert ChatClient to IChatClient and create AI agent
-        var chatClientInterface = _chatClient.AsIChatClient();
-        return chatClientInterface.CreateAIAgent(
+        // Create AI agent from IChatClient
+        return _chatClient.CreateAIAgent(
             instructions: """
                 You are a helpful AI assistant. You help users with their questions 
                 and remember the context of the conversation. Be concise but thorough 
