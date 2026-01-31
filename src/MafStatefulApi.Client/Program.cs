@@ -14,7 +14,7 @@ builder.AddServiceDefaults();
 // The base address "http://api" is resolved via Aspire service discovery
 builder.Services.AddHttpClient<ApiClient>(client =>
 {
-    client.BaseAddress = new Uri("http://api");
+    client.BaseAddress = new Uri("http+https://api");
 });
 
 var host = builder.Build();
@@ -27,40 +27,40 @@ try
 {
     // Demo: Multi-turn conversation
     Console.WriteLine("Starting a multi-turn conversation...\n");
-    
+
     // Turn 1: Start a new conversation
     Console.WriteLine("User: Hello! My name is Alice and I love hiking.");
     var response1 = await client.ChatAsync("Hello! My name is Alice and I love hiking.");
     Console.WriteLine($"Agent: {response1?.Answer}");
     Console.WriteLine($"(Conversation ID: {response1?.ConversationId})\n");
-    
+
     if (response1?.ConversationId is not null)
     {
         // Wait a moment between requests
         await Task.Delay(1000);
-        
+
         // Turn 2: Continue the same conversation (tests session persistence)
         Console.WriteLine("User: What is my name and what do I enjoy doing?");
         var response2 = await client.ChatAsync(
             "What is my name and what do I enjoy doing?",
             response1.ConversationId);
         Console.WriteLine($"Agent: {response2?.Answer}\n");
-        
+
         await Task.Delay(1000);
-        
+
         // Turn 3: Ask another contextual question
         Console.WriteLine("User: Can you suggest some hiking trails for me?");
         var response3 = await client.ChatAsync(
             "Can you suggest some hiking trails for me?",
             response1.ConversationId);
         Console.WriteLine($"Agent: {response3?.Answer}\n");
-        
+
         // Reset the conversation
         Console.WriteLine($"Resetting conversation {response1.ConversationId}...");
         await client.ResetAsync(response1.ConversationId);
         Console.WriteLine("Conversation reset successfully.\n");
     }
-    
+
     Console.WriteLine("=== Demo Complete ===");
     Console.WriteLine("The conversation demonstrated:");
     Console.WriteLine("1. Starting a new conversation (new session created)");

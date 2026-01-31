@@ -10,18 +10,18 @@ namespace MafStatefulApi.Api.Agents;
 /// </summary>
 public class AgentRunner
 {
-    private readonly AgentFactory _agentFactory;
+    private readonly AIAgent _agent;
     private readonly IAgentSessionStore _sessionStore;
     private readonly ILogger<AgentRunner> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
 
     public AgentRunner(
-        AgentFactory agentFactory,
+        AIAgent agent,
         IAgentSessionStore sessionStore,
         ILogger<AgentRunner> logger)
     {
-        _agentFactory = agentFactory;
+        _agent = agent;
         _sessionStore = sessionStore;
         _logger = logger;
     }
@@ -42,14 +42,11 @@ public class AgentRunner
             "Running agent for conversation {ConversationId}",
             conversationId);
 
-        // Create the agent (stateless)
-        var agent = _agentFactory.CreateAgent();
-
         // Load or create the agent thread (stateful)
-        var thread = await LoadOrCreateThreadAsync(agent, conversationId, cancellationToken);
+        var thread = await LoadOrCreateThreadAsync(conversationId, cancellationToken);
 
         // Run the agent with the user message and thread
-        var response = await agent.RunAsync(userMessage, thread, cancellationToken: cancellationToken);
+        var response = await _agent.RunAsync(userMessage, thread, cancellationToken: cancellationToken);
         var answer = response.Text ?? string.Empty;
 
         // Save the updated thread
@@ -64,7 +61,6 @@ public class AgentRunner
     }
 
     private async Task<AgentThread> LoadOrCreateThreadAsync(
-        AIAgent agent,
         string conversationId,
         CancellationToken cancellationToken)
     {
@@ -79,7 +75,7 @@ public class AgentRunner
             try
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>(serializedThread, JsonOptions);
-                return agent.DeserializeThread(jsonElement, JsonOptions);
+                return _agent.DeserializeThread(jsonElement, JsonOptions);
             }
             catch (Exception ex)
             {
@@ -94,7 +90,7 @@ public class AgentRunner
             "Creating new thread for conversation {ConversationId}",
             conversationId);
         
-        return agent.GetNewThread();
+        return _agent.GetNewThread();
     }
 
     private async Task SaveThreadAsync(

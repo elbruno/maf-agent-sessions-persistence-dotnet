@@ -66,11 +66,11 @@ This sample shows how to bridge this gap by:
 │   │   ├── Extensions.cs            # OpenTelemetry, health checks
 │   │   └── MafStatefulApi.ServiceDefaults.csproj
 │   ├── MafStatefulApi.Api/          # Web API
-│   │   ├── Program.cs               # DI configuration
+│   │   ├── Program.cs               # DI configuration and agent registration
 │   │   ├── Endpoints/ChatEndpoints.cs # POST /chat, POST /reset
 │   │   ├── Models/                  # Request/Response DTOs
 │   │   ├── State/                   # IAgentSessionStore implementations
-│   │   ├── Agents/                  # AgentFactory, AgentRunner
+│   │   ├── Agents/                  # AgentRunner
 │   │   └── appsettings.json
 │   └── MafStatefulApi.Client/       # Console demo client
 │       ├── Program.cs               # Service discovery demo
@@ -79,6 +79,17 @@ This sample shows how to bridge this gap by:
     └── MafStatefulApi.Tests/        # Integration tests
         └── ChatFlowTests.cs
 ```
+
+## 🤖 Agent Registration
+
+The application creates and registers the AI agent directly on startup in `Program.cs`:
+
+- **Agent Creation**: The agent is created using `IChatClient.CreateAIAgent()` with predefined instructions
+- **Singleton Registration**: The agent is registered as a singleton in the DI container using a factory function
+- **Stateless Design**: The agent instance is stateless and shared across all requests
+- **Thread Management**: Each conversation has its own `AgentThread` that holds the state
+
+This approach ensures the agent is ready to use as soon as the application starts and makes the code easy to understand and explain.
 
 ## 🔍 Observability
 

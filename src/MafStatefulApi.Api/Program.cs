@@ -34,8 +34,31 @@ else
 // Configure Microsoft Agent Framework with Ollama or Azure Foundry Models (Azure OpenAI)
 ConfigureAgentFramework(builder);
 
-// Register agent components
-builder.Services.AddSingleton<AgentFactory>();
+// Create and register the agent directly on startup
+// The agent is stateless and shared across all requests
+builder.Services.AddSingleton(sp =>
+{
+    var chatClient = sp.GetRequiredService<IChatClient>();
+    var logger = sp.GetRequiredService<ILogger<Program>>();
+    
+    logger.LogInformation("Creating AIAgent on startup");
+    
+    // Create the agent with predefined instructions
+    var agent = chatClient.CreateAIAgent(
+        instructions: """
+            You are a helpful AI assistant. You help users with their questions 
+            and remember the context of the conversation. Be concise but thorough 
+            in your responses. If the user asks about previous messages, refer to 
+            the conversation history.
+            """,
+        name: "AssistantAgent"
+    );
+    
+    logger.LogInformation("AIAgent successfully created and registered");
+    return agent;
+});
+
+// Register AgentRunner
 builder.Services.AddScoped<AgentRunner>();
 
 var app = builder.Build();
