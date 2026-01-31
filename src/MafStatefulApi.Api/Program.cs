@@ -61,17 +61,24 @@ app.Run();
 static void ConfigureAgentFramework(WebApplicationBuilder builder)
 {
     // Azure Foundry Models (Azure OpenAI) configuration
-    var azureEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
-    var azureDeployment = builder.Configuration["AzureOpenAI:DeploymentName"];
-    var azureApiKey = builder.Configuration["AzureOpenAI:ApiKey"];
-    
-    if (!string.IsNullOrEmpty(azureEndpoint) && !string.IsNullOrEmpty(azureDeployment) && !string.IsNullOrEmpty(azureApiKey))
+    var azureEndpoint = builder.Configuration["AzureOpenAI:Endpoint"]?.Trim();
+    var azureDeployment = builder.Configuration["AzureOpenAI:DeploymentName"]?.Trim();
+    var azureApiKey = builder.Configuration["AzureOpenAI:ApiKey"]?.Trim();
+
+    var hasAzureConfig = !string.IsNullOrEmpty(azureEndpoint)
+        && !string.IsNullOrEmpty(azureDeployment)
+        && !string.IsNullOrEmpty(azureApiKey);
+    var hasValidAzureEndpoint = Uri.TryCreate(azureEndpoint, UriKind.Absolute, out var azureEndpointUri)
+        && (azureEndpointUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+            || azureEndpointUri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase));
+
+    if (hasAzureConfig && hasValidAzureEndpoint)
     {
         // Use Azure Foundry Models (Azure OpenAI)
         var azureClient = new AzureOpenAIClient(
-            new Uri(azureEndpoint),
-            new System.ClientModel.ApiKeyCredential(azureApiKey));
-        var chatClient = azureClient.GetChatClient(azureDeployment);
+            azureEndpointUri,
+            new System.ClientModel.ApiKeyCredential(azureApiKey!));
+        var chatClient = azureClient.GetChatClient(azureDeployment!);
         builder.Services.AddSingleton(chatClient);
         // Register as IChatClient using the extension method for compatibility with Microsoft.Extensions.AI
         builder.Services.AddSingleton<IChatClient>(chatClient.AsIChatClient());
@@ -79,6 +86,10 @@ static void ConfigureAgentFramework(WebApplicationBuilder builder)
     }
     else
     {
+        if (hasAzureConfig && !hasValidAzureEndpoint)
+        {
+            Console.WriteLine($"Azure endpoint is invalid, falling back to Ollama: {azureEndpoint}");
+        }
         // Use Ollama via Aspire integration (default for local development)
         // "chat-model" must match the model name defined in AppHost.cs (ollama.AddModel("chat-model", ...))
         builder.AddOllamaApiClient("chat-model").AddChatClient();
