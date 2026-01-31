@@ -16,12 +16,16 @@ var azureOpenAIEndpoint = builder.AddParameter("AzureOpenAI-Endpoint");
 var azureOpenAIDeployment = builder.AddParameter("AzureOpenAI-DeploymentName");
 var azureOpenAIApiKey = builder.AddParameter("AzureOpenAI-ApiKey", secret: true);
 
+// State store configuration - defines whether to use Redis or InMemory
+var stateStore = builder.AddParameter("StateStore");
+
 // Add the API project with Redis reference and AI configuration
 var api = builder.AddProject<Projects.MafStatefulApi_Api>("api")
     .WithReference(cache)
     .WaitFor(cache)
     .WithReference(ollamaModel)
     .WaitFor(ollamaModel)
+    .WithEnvironment("StateStore", stateStore)
     .WithEnvironment("AzureOpenAI__Endpoint", azureOpenAIEndpoint)
     .WithEnvironment("AzureOpenAI__DeploymentName", azureOpenAIDeployment)
     .WithEnvironment("AzureOpenAI__ApiKey", azureOpenAIApiKey);

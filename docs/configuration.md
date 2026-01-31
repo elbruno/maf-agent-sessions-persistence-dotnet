@@ -77,6 +77,10 @@ You can also configure non-secret values in `src/MafStatefulApi.AppHost/appsetti
 In CI/CD pipelines or production, use environment variables with double underscores for nested keys:
 
 ```bash
+# State store configuration
+export Parameters__StateStore="Redis"
+
+# Azure Foundry Models configuration
 export Parameters__AzureOpenAI-ApiKey="your-api-key"
 export Parameters__AzureOpenAI-Endpoint="https://your-resource.openai.azure.com/"
 export Parameters__AzureOpenAI-DeploymentName="gpt-4o"
@@ -84,27 +88,44 @@ export Parameters__AzureOpenAI-DeploymentName="gpt-4o"
 
 ## State Store Configuration
 
+The state store determines where conversation sessions are persisted. This is configured via the Aspire AppHost parameter.
+
 ### Redis (Default)
 
 Redis is the default state store and is automatically provisioned by Aspire.
 
-**Configuration in appsettings.json:**
+**Configuration in AppHost appsettings.json:**
 ```json
 {
-  "StateStore": "Redis",
-  "SessionTtlMinutes": 30
+  "Parameters": {
+    "StateStore": "Redis"
+  }
 }
+```
+
+Or via user secrets:
+```bash
+cd src/MafStatefulApi.AppHost
+dotnet user-secrets set "Parameters:StateStore" "Redis"
 ```
 
 ### In-Memory (Development Only)
 
 For simple development scenarios without Docker:
 
+**Configuration in AppHost appsettings.json:**
 ```json
 {
-  "StateStore": "InMemory",
-  "SessionTtlMinutes": 30
+  "Parameters": {
+    "StateStore": "InMemory"
+  }
 }
+```
+
+Or via user secrets:
+```bash
+cd src/MafStatefulApi.AppHost
+dotnet user-secrets set "Parameters:StateStore" "InMemory"
 ```
 
 > ⚠️ **Warning**: In-memory storage doesn't persist across restarts and doesn't support horizontal scaling.
@@ -132,6 +153,7 @@ Configuration values are resolved in this order (highest priority first):
     }
   },
   "Parameters": {
+    "StateStore": "Redis",
     "AzureOpenAI-Endpoint": "",
     "AzureOpenAI-DeploymentName": "",
     "AzureOpenAI-ApiKey": ""
