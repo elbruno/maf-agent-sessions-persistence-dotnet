@@ -4,13 +4,11 @@ This document describes how to configure the MAF Stateful Aspire Sample.
 
 ## AI Provider Configuration
 
-The sample supports two AI providers:
-1. **Ollama** (default) - Local AI models for development, managed by Aspire
-2. **Azure Foundry Models (Azure OpenAI)** - Cloud-based AI for production
+The sample uses **Ollama** for local AI models, managed automatically by .NET Aspire.
 
-### Ollama Configuration (Default)
+### Ollama Configuration
 
-Ollama is the default provider and runs locally via Docker container managed by Aspire.
+Ollama runs locally via Docker container managed by Aspire.
 
 The Aspire AppHost automatically:
 - Starts an Ollama container with the `llama3.2:1b` model
@@ -27,108 +25,23 @@ var ollamaModel = ollama.AddModel("chat-model", "llama3.2:1b");
 
 To use a different model, modify the `AddModel` call in `AppHost.cs`.
 
-### Azure Foundry Models (Azure OpenAI) Configuration
+## Session Storage
 
-For production workloads or when you need more powerful models, configure Azure Foundry Models (Azure OpenAI).
+The application uses **Redis** for session persistence, automatically provisioned by .NET Aspire.
 
-**Configuration Parameters:**
+Redis configuration in `AppHost.cs`:
+```csharp
+var cache = builder.AddRedis("cache");
+```
 
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `AzureOpenAI:Endpoint` | Azure OpenAI resource endpoint | Yes |
-| `AzureOpenAI:DeploymentName` | Deployment name (e.g., gpt-4o) | Yes |
-| `AzureOpenAI:ApiKey` | Azure OpenAI API key | Yes |
+The API project automatically connects to Redis via Aspire service discovery. Sessions are configured with a Time-To-Live (TTL) of 30 minutes by default.
 
-## Secrets Management with Aspire
-
-Secrets are defined as parameters in the Aspire AppHost and passed to projects via environment variables.
-
-### Configuring Secrets via User Secrets
-
-1. Navigate to the AppHost project:
-   ```bash
-   cd src/MafStatefulApi.AppHost
-   ```
-
-2. Set secrets using the .NET user-secrets tool:
-   ```bash
-   # Azure Foundry Models (Azure OpenAI) secrets
-   dotnet user-secrets set "Parameters:AzureOpenAI-Endpoint" "https://your-resource.openai.azure.com/"
-   dotnet user-secrets set "Parameters:AzureOpenAI-DeploymentName" "gpt-4o"
-   dotnet user-secrets set "Parameters:AzureOpenAI-ApiKey" "your-api-key"
-   ```
-
-### Configuring via appsettings.json
-
-You can also configure non-secret values in `src/MafStatefulApi.AppHost/appsettings.json`:
-
+To change the session TTL, modify `SessionTtlMinutes` in `src/MafStatefulApi.Api/appsettings.json`:
 ```json
 {
-  "Parameters": {
-    "AzureOpenAI-Endpoint": "",
-    "AzureOpenAI-DeploymentName": "",
-    "AzureOpenAI-ApiKey": ""
-  }
+  "SessionTtlMinutes": 30
 }
 ```
-
-### Environment Variables
-
-In CI/CD pipelines or production, use environment variables with double underscores for nested keys:
-
-```bash
-# State store configuration
-export Parameters__StateStore="Redis"
-
-# Azure Foundry Models configuration
-export Parameters__AzureOpenAI-ApiKey="your-api-key"
-export Parameters__AzureOpenAI-Endpoint="https://your-resource.openai.azure.com/"
-export Parameters__AzureOpenAI-DeploymentName="gpt-4o"
-```
-
-## State Store Configuration
-
-The state store determines where conversation sessions are persisted. This is configured via the Aspire AppHost parameter.
-
-### Redis (Default)
-
-Redis is the default state store and is automatically provisioned by Aspire.
-
-**Configuration in AppHost appsettings.json:**
-```json
-{
-  "Parameters": {
-    "StateStore": "Redis"
-  }
-}
-```
-
-Or via user secrets:
-```bash
-cd src/MafStatefulApi.AppHost
-dotnet user-secrets set "Parameters:StateStore" "Redis"
-```
-
-### In-Memory (Development Only)
-
-For simple development scenarios without Docker:
-
-**Configuration in AppHost appsettings.json:**
-```json
-{
-  "Parameters": {
-    "StateStore": "InMemory"
-  }
-}
-```
-
-Or via user secrets:
-```bash
-cd src/MafStatefulApi.AppHost
-dotnet user-secrets set "Parameters:StateStore" "InMemory"
-```
-
-> ⚠️ **Warning**: In-memory storage doesn't persist across restarts and doesn't support horizontal scaling.
 
 ## Configuration Precedence
 
@@ -151,12 +64,6 @@ Configuration values are resolved in this order (highest priority first):
       "Microsoft.AspNetCore": "Warning",
       "Aspire.Hosting.Dcp": "Warning"
     }
-  },
-  "Parameters": {
-    "StateStore": "Redis",
-    "AzureOpenAI-Endpoint": "",
-    "AzureOpenAI-DeploymentName": "",
-    "AzureOpenAI-ApiKey": ""
   }
 }
 ```
@@ -173,12 +80,6 @@ Configuration values are resolved in this order (highest priority first):
     }
   },
   "AllowedHosts": "*",
-  "StateStore": "Redis",
-  "SessionTtlMinutes": 30,
-  "AzureOpenAI": {
-    "Endpoint": "",
-    "DeploymentName": "",
-    "ApiKey": ""
-  }
+  "SessionTtlMinutes": 30
 }
 ```

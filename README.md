@@ -6,7 +6,6 @@ A production-ready sample demonstrating **state management for Microsoft Agent F
 
 - **Session Persistence**: Conversations survive across requests using Redis
 - **Local AI with Ollama**: Run AI models locally without cloud dependencies
-- **Azure Foundry Models**: Production-ready Azure OpenAI integration
 - **.NET Aspire Orchestration**: Simplified infrastructure with automatic service discovery
 - **Observability**: Built-in logging, tracing, and metrics
 
