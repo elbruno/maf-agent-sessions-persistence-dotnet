@@ -1,0 +1,27 @@
+@MafStatefulApi.Api_HostAddress = http://localhost:5256
+
+### Start a new conversation
+POST {{MafStatefulApi.Api_HostAddress}}/chat
+Content-Type: application/json
+
+{
+    "message": "Hello! My name is Alice."
+}
+
+### Continue the conversation (replace with actual conversationId from previous response)
+POST {{MafStatefulApi.Api_HostAddress}}/chat
+Content-Type: application/json
+
+{
+    "conversationId": "YOUR-CONVERSATION-ID-HERE",
+    "message": "What is my name?"
+}
+
+### Reset a conversation (replace with actual conversationId)
+POST {{MafStatefulApi.Api_HostAddress}}/reset/YOUR-CONVERSATION-ID-HERE
+
+### Health check
+GET {{MafStatefulApi.Api_HostAddress}}/health
+
+### Liveness check
+GET {{MafStatefulApi.Api_HostAddress}}/alive
