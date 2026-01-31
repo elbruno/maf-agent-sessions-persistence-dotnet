@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MafStatefulApi.Api/MafStatefulApi.Api.csproj" />
+    <Project Path="src/MafStatefulApi.AppHost/MafStatefulApi.AppHost.csproj" />
+    <Project Path="src/MafStatefulApi.Client/MafStatefulApi.Client.csproj" />
+    <Project Path="src/MafStatefulApi.ServiceDefaults/MafStatefulApi.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MafStatefulApi.Tests/MafStatefulApi.Tests.csproj" />
+  </Folder>
+</Solution>
