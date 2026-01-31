@@ -11,7 +11,7 @@ AI agents need to remember conversation context across multiple user interaction
 - **AgentThread holds the state** - conversation history and context
 
 This sample shows how to bridge this gap by:
-1. Serializing agent threads to a persistent store (Redis or in-memory)
+1. Serializing agent threads to Redis
 2. Loading threads when continuing conversations
 3. Managing session lifecycle (TTL, reset)
 
@@ -29,8 +29,7 @@ This sample shows how to bridge this gap by:
                            │              └─────────────┘
                            │
                     ┌──────┴──────┐
-                    │   Redis /   │
-                    │  MemoryCache│
+                    │    Redis    │
                     └─────────────┘
 ```
 
@@ -44,9 +43,8 @@ This sample shows how to bridge this gap by:
 
 - **Orchestration**: Starts Redis, Ollama, API, and Client in the correct order
 - **Service Discovery**: Client finds API via logical name (`http://api`)
-- **Redis Provisioning**: Automatically runs Redis container (no docker-compose!)
+- **Redis Provisioning**: Automatically runs Redis container
 - **Ollama Provisioning**: Automatically runs Ollama container for local AI
-- **Secret Management**: Parameters passed securely from AppHost to projects
 - **Dashboard**: Real-time observability (logs, traces, metrics)
 
 ## 📁 Project Structure
@@ -114,10 +112,10 @@ View all telemetry in the Aspire Dashboard.
 - Configure appropriate `SessionTtlMinutes` based on usage patterns
 - Monitor Redis memory usage for high-traffic scenarios
 
-### Store Downtime
+### Redis Downtime
 
 - Implement circuit breakers (included via Aspire resilience)
-- Consider fallback to in-memory cache for degraded mode
+- Consider application-level error handling for degraded mode
 
 ### History Trimming
 
@@ -129,4 +127,3 @@ View all telemetry in the Aspire Dashboard.
 - Never commit API keys to source control
 - Use Azure Key Vault or similar for production secrets
 - Consider rate limiting for public APIs
-- Secrets are managed through Aspire parameters and user secrets

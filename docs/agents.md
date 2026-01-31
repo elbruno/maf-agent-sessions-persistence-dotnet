@@ -142,7 +142,7 @@ builder.AddProject<Projects.MafStatefulApi_Client>("client")
 
 ## AI Provider Configuration
 
-### Using Ollama (Default - Local Development)
+### Using Ollama (Local Development)
 
 Ollama runs automatically via Aspire. The first time you run:
 1. Docker pulls the Ollama image
@@ -153,17 +153,6 @@ Ollama runs automatically via Aspire. The first time you run:
 Modify the `AddModel` call in `src/MafStatefulApi.AppHost/AppHost.cs`:
 ```csharp
 var ollamaModel = ollama.AddModel("chat-model", "llama3.1:latest");
-```
-
-### Using Azure Foundry Models (Production)
-
-For production or more powerful models:
-
-```bash
-cd src/MafStatefulApi.AppHost
-dotnet user-secrets set "Parameters:AzureOpenAI-Endpoint" "https://your-resource.openai.azure.com/"
-dotnet user-secrets set "Parameters:AzureOpenAI-DeploymentName" "gpt-4o"
-dotnet user-secrets set "Parameters:AzureOpenAI-ApiKey" "your-api-key"
 ```
 
 ## Running Tests
