@@ -29,7 +29,7 @@ Console.WriteLine("Using Ollama for AI model");
 
 builder.AddAIAgent(
     name: "AssistantAgent",
-    instructions: @"You are a friendly and helpful AI assistant.        
+    instructions: @"You are a friendly and helpful AI assistant.
         Guidelines:
         - Be concise and clear in your responses
         - Remember context from previous messages in the conversation
@@ -37,34 +37,6 @@ builder.AddAIAgent(
         - Use simple language that is easy to understand
         - If you don't know something, say so honestly
         ");
-
-//// Create and register the agent directly on startup
-//// The agent is stateless and shared across all requests
-//builder.Services.AddSingleton<AIAgent>(sp =>
-//{
-//    var chatClient = sp.GetRequiredService<IChatClient>();
-//    var logger = sp.GetRequiredService<ILogger<Program>>();
-
-//    logger.LogInformation("Creating AIAgent on startup");
-
-//    // Create the agent with predefined instructions
-//    var agent = chatClient.CreateAIAgent(
-//        instructions: """
-//            You are a friendly and helpful AI assistant.
-            
-//            Guidelines:
-//            - Be concise and clear in your responses
-//            - Remember context from previous messages in the conversation
-//            - When asked about prior messages, reference the conversation history
-//            - Use simple language that is easy to understand
-//            - If you don't know something, say so honestly
-//            """,
-//        name: "AssistantAgent"
-//    );
-
-//    logger.LogInformation("AIAgent successfully created and registered");
-//    return agent;
-//});
 
 // Register AgentRunner
 builder.Services.AddScoped<AgentRunner>();

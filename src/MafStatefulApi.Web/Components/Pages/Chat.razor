@@ -125,16 +125,8 @@
         // Clear messages when switching sessions
         messages.Clear();
         
-        if (!string.IsNullOrEmpty(selectedSessionId))
-        {
-            // In a real implementation, you'd load the conversation history here
-            messages.Add(new ChatMessage
-            {
-                Role = "system",
-                Text = $"Loaded session: {selectedSessionId}",
-                Timestamp = DateTime.Now
-            });
-        }
+        // Note: Full conversation history loading is not implemented yet.
+        // In a future enhancement, this would load all messages from the session.
         
         StateHasChanged();
     }

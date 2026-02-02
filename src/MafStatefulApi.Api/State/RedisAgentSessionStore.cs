@@ -77,6 +77,7 @@ public class RedisAgentSessionStore : IAgentSessionStore
         try
         {
             var db = _redis.GetDatabase();
+            // Note: In a clustered or sentinel configuration, you may need to specify the server endpoint
             var server = _redis.GetServers().FirstOrDefault();
             
             if (server == null)
@@ -86,6 +87,7 @@ public class RedisAgentSessionStore : IAgentSessionStore
             }
 
             var pattern = "maf:sessions:*";
+            // Note: Keys() blocks Redis and should be replaced with SCAN for production with many keys
             var keys = server.Keys(pattern: pattern).ToList();
             
             var conversationIds = keys
