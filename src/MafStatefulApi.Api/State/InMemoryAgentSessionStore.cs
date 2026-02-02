@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
 
 namespace MafStatefulApi.Api.State;
 
@@ -11,6 +12,7 @@ public class InMemoryAgentSessionStore : IAgentSessionStore
     private readonly IMemoryCache _cache;
     private readonly ILogger<InMemoryAgentSessionStore> _logger;
     private readonly TimeSpan _sessionTtl;
+    private readonly ConcurrentDictionary<string, bool> _sessionKeys = new();
 
     public InMemoryAgentSessionStore(
         IMemoryCache cache,
@@ -45,6 +47,7 @@ public class InMemoryAgentSessionStore : IAgentSessionStore
         };
         
         _cache.Set(key, serializedThread, options);
+        _sessionKeys.TryAdd(conversationId, true);
         
         _logger.LogInformation(
             "InMemory cache stored session for conversation {ConversationId}, size: {SizeBytes} bytes",
@@ -58,12 +61,27 @@ public class InMemoryAgentSessionStore : IAgentSessionStore
     {
         var key = GetKey(conversationId);
         _cache.Remove(key);
+        _sessionKeys.TryRemove(conversationId, out _);
         
         _logger.LogInformation(
             "InMemory cache deleted session for conversation {ConversationId}",
             conversationId);
         
         return Task.CompletedTask;
+    }
+
+    public Task<IEnumerable<string>> ListSessionsAsync(CancellationToken cancellationToken = default)
+    {
+        // Return only keys that still exist in cache
+        var existingSessions = _sessionKeys.Keys
+            .Where(id => _cache.TryGetValue(GetKey(id), out _))
+            .ToList();
+        
+        _logger.LogInformation(
+            "Found {Count} sessions in InMemory cache",
+            existingSessions.Count);
+        
+        return Task.FromResult<IEnumerable<string>>(existingSessions);
     }
 
     private static string GetKey(string conversationId) => $"maf:sessions:{conversationId}";

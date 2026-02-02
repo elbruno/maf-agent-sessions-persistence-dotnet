@@ -9,4 +9,7 @@
   <Folder Name="/2 Client/">
     <Project Path="src/MafStatefulApi.Client/MafStatefulApi.Client.csproj" />
   </Folder>
+  <Folder Name="/3 Web/">
+    <Project Path="src/MafStatefulApi.Web/MafStatefulApi.Web.csproj" />
+  </Folder>
 </Solution>

@@ -17,6 +17,11 @@ var api = builder.AddProject<Projects.MafStatefulApi_Api>("api")
     .WithReference(ollamaModel)
     .WaitFor(ollamaModel);
 
+// Add the Web project and reference the API
+builder.AddProject<Projects.MafStatefulApi_Web>("web")
+    .WithReference(api)
+    .WaitFor(api);
+
 // Add the Client project and reference the API
 builder.AddProject<Projects.MafStatefulApi_Client>("client")
     .WithReference(api)

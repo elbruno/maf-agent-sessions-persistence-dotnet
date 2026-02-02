@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MafStatefulApi.Api\MafStatefulApi.Api.csproj" />
     <ProjectReference Include="..\MafStatefulApi.Client\MafStatefulApi.Client.csproj" />
+    <ProjectReference Include="..\MafStatefulApi.Web\MafStatefulApi.Web.csproj" />
   </ItemGroup>
 
 </Project>

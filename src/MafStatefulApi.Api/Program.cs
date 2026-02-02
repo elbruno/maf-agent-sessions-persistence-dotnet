@@ -15,6 +15,10 @@ builder.Services.AddOpenApi();
 
 // Configure Redis distributed cache for session persistence
 builder.AddRedisDistributedCache("cache");
+
+// Also register IConnectionMultiplexer for advanced Redis operations
+builder.AddRedisClient("cache");
+
 builder.Services.AddSingleton<IAgentSessionStore, RedisAgentSessionStore>();
 builder.Services.AddLogging(logging => logging.AddConsole());
 Console.WriteLine("Using Redis for session storage");
