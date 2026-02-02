@@ -80,6 +80,34 @@ curl -X POST http://localhost:5256/reset/abc-123
 # Response: {"message":"Conversation abc-123 has been reset."}
 ```
 
+### GET /sessions
+
+List all active conversation sessions.
+
+**Response:**
+
+```json
+{
+  "sessions": [
+    "abc-123",
+    "def-456",
+    "ghi-789"
+  ]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sessions` | string[] | Array of active conversation IDs. |
+
+**Example:**
+
+```bash
+curl http://localhost:5256/sessions
+
+# Response: {"sessions":["abc-123","def-456"]}
+```
+
 ### GET /health
 
 Health check endpoint. Returns the health status of the application and its dependencies.
