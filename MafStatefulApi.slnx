@@ -1,11 +1,12 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/MafStatefulApi.Api/MafStatefulApi.Api.csproj" />
+  <Folder Name="/0 Aspire/">
     <Project Path="src/MafStatefulApi.AppHost/MafStatefulApi.AppHost.csproj" />
-    <Project Path="src/MafStatefulApi.Client/MafStatefulApi.Client.csproj" />
     <Project Path="src/MafStatefulApi.ServiceDefaults/MafStatefulApi.ServiceDefaults.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/MafStatefulApi.Tests/MafStatefulApi.Tests.csproj" />
+  <Folder Name="/1 API/">
+    <Project Path="src/MafStatefulApi.Api/MafStatefulApi.Api.csproj" />
+  </Folder>
+  <Folder Name="/2 Client/">
+    <Project Path="src/MafStatefulApi.Client/MafStatefulApi.Client.csproj" />
   </Folder>
 </Solution>

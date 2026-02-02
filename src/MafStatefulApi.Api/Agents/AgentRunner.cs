@@ -27,7 +27,7 @@ public class AgentRunner
     }
 
     /// <summary>
-    /// Runs the agent with the given message, managing thread persistence.
+    /// Runs the agent with the given message, managing session persistence.
     /// </summary>
     /// <param name="conversationId">The conversation ID to load/save state.</param>
     /// <param name="userMessage">The user's message.</param>
@@ -42,15 +42,15 @@ public class AgentRunner
             "Running agent for conversation {ConversationId}",
             conversationId);
 
-        // Load or create the agent thread (stateful)
-        var thread = await LoadOrCreateThreadAsync(conversationId, cancellationToken);
+        // Load or create the agent session (stateful)
+        var session = await LoadOrCreateSessionAsync(conversationId, cancellationToken);
 
-        // Run the agent with the user message and thread
-        var response = await _agent.RunAsync(userMessage, thread, cancellationToken: cancellationToken);
+        // Run the agent with the user message and session
+        var response = await _agent.RunAsync(userMessage, session, cancellationToken: cancellationToken);
         var answer = response.Text ?? string.Empty;
 
-        // Save the updated thread
-        await SaveThreadAsync(conversationId, thread, cancellationToken);
+        // Save the updated session
+        await SaveSessionAsync(conversationId, session, cancellationToken);
 
         _logger.LogInformation(
             "Agent response for conversation {ConversationId}: {ResponseLength} chars",
@@ -60,52 +60,52 @@ public class AgentRunner
         return answer;
     }
 
-    private async Task<AgentThread> LoadOrCreateThreadAsync(
+    private async Task<AgentSession> LoadOrCreateSessionAsync(
         string conversationId,
         CancellationToken cancellationToken)
     {
-        var serializedThread = await _sessionStore.GetAsync(conversationId, cancellationToken);
-        
-        if (serializedThread is not null)
+        var serializedSession = await _sessionStore.GetAsync(conversationId, cancellationToken);
+
+        if (serializedSession is not null)
         {
             _logger.LogDebug(
-                "Deserializing existing thread for conversation {ConversationId}",
+                "Deserializing existing session for conversation {ConversationId}",
                 conversationId);
-            
+
             try
             {
-                var jsonElement = JsonSerializer.Deserialize<JsonElement>(serializedThread, JsonOptions);
-                return _agent.DeserializeThread(jsonElement, JsonOptions);
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>(serializedSession, JsonOptions);
+                return await _agent.DeserializeSessionAsync(jsonElement, JsonOptions, cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(
                     ex,
-                    "Failed to deserialize thread for conversation {ConversationId}, creating new thread",
+                    "Failed to deserialize session for conversation {ConversationId}, creating new session",
                     conversationId);
             }
         }
 
         _logger.LogDebug(
-            "Creating new thread for conversation {ConversationId}",
+            "Creating new session for conversation {ConversationId}",
             conversationId);
-        
-        return _agent.GetNewThread();
+
+        return await _agent.GetNewSessionAsync(cancellationToken);
     }
 
-    private async Task SaveThreadAsync(
+    private async Task SaveSessionAsync(
         string conversationId,
-        AgentThread thread,
+        AgentSession session,
         CancellationToken cancellationToken)
     {
-        var serializedElement = thread.Serialize(JsonOptions);
+        var serializedElement = session.Serialize(JsonOptions);
         var serialized = serializedElement.GetRawText();
-        
+
         _logger.LogDebug(
-            "Saving thread for conversation {ConversationId}, serialized size: {SizeBytes} bytes",
+            "Saving session for conversation {ConversationId}, serialized size: {SizeBytes} bytes",
             conversationId,
             serialized.Length);
-        
+
         await _sessionStore.SetAsync(conversationId, serialized, cancellationToken);
     }
 }
