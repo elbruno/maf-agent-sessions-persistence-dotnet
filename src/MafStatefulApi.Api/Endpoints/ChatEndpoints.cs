@@ -24,7 +24,7 @@ public static class ChatEndpoints
             CancellationToken cancellationToken) =>
         {
             // Generate a new conversation ID if not provided
-            var conversationId = request.ConversationId ?? Guid.NewGuid().ToString();
+            var conversationId = request.ConversationId ?? $"{DateTime.Now:HH:mm:ss}-{Guid.NewGuid()}";
             
             logger.LogInformation(
                 "Chat request received for conversation {ConversationId}",
