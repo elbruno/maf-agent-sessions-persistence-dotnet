@@ -2,6 +2,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // Add Redis cache resource for session persistence
 var cache = builder.AddRedis("cache");
+    //.WithPersistence()
+    //.WithDataVolume();
 
 // Add Ollama container with persistent volume for model caching
 var ollama = builder.AddOllama("ollama")
