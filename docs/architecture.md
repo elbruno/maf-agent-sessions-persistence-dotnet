@@ -19,30 +19,32 @@ This sample shows how to bridge this gap by:
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────────┐
-│   Client    │────▶│   Web API   │────▶│  ChatCompletion │
-│  (Console)  │◀────│ (ASP.NET)   │◀────│     Agent       │
+│   Blazor    │────▶│   Web API   │────▶│  ChatCompletion │
+│   Web UI    │◀────│ (ASP.NET)   │◀────│     Agent       │
 └─────────────┘     └─────────────┘     └─────────────────┘
-                           │                     │
-                           │              ┌──────┴──────┐
-                           │              │ AgentThread │ ◀── Stateful!
-                           │              │  (Session)  │
-                           │              └─────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │    Redis    │
-                    └─────────────┘
+       │                    │                     │
+┌─────────────┐             │              ┌──────┴──────┐
+│   Console   │─────────────┘              │ AgentThread │ ◀── Stateful!
+│   Client    │                            │  (Session)  │
+└─────────────┘                            └─────────────┘
+                                                  │
+                                           ┌──────┴──────┐
+                                           │    Redis    │
+                                           └─────────────┘
 ```
 
 - **Agent**: Stateless. Created fresh for each request.
 - **AgentThread**: Stateful. Contains conversation history.
 - **Session Store**: Persists serialized threads between requests.
+- **Web UI**: Blazor Server app for interactive chat with session management.
+- **Console Client**: Command-line demo client.
 
 ## 🚀 Aspire's Role
 
 .NET Aspire provides:
 
-- **Orchestration**: Starts Redis, Ollama, API, and Client in the correct order
-- **Service Discovery**: Client finds API via logical name (`http://api`)
+- **Orchestration**: Starts Redis, Ollama, API, Web UI, and Client in the correct order
+- **Service Discovery**: Web UI and Client find API via logical name (`http://api`)
 - **Redis Provisioning**: Automatically runs Redis container
 - **Ollama Provisioning**: Automatically runs Ollama container for local AI
 - **Dashboard**: Real-time observability (logs, traces, metrics)
@@ -58,17 +60,26 @@ This sample shows how to bridge this gap by:
 │   └── api-reference.md             # API endpoints reference
 ├── src/
 │   ├── MafStatefulApi.AppHost/      # Aspire orchestration
-│   │   ├── AppHost.cs               # Redis + Ollama + API + Client wiring
+│   │   ├── AppHost.cs               # Redis + Ollama + API + Web + Client wiring
 │   │   └── MafStatefulApi.AppHost.csproj
 │   ├── MafStatefulApi.ServiceDefaults/ # Shared Aspire configuration
 │   │   ├── Extensions.cs            # OpenTelemetry, health checks
 │   │   └── MafStatefulApi.ServiceDefaults.csproj
 │   ├── MafStatefulApi.Api/          # Web API
 │   │   ├── Program.cs               # DI configuration and agent registration
-│   │   ├── Endpoints/ChatEndpoints.cs # POST /chat, POST /reset
+│   │   ├── Endpoints/ChatEndpoints.cs # POST /chat, POST /reset, GET /sessions
 │   │   ├── Models/                  # Request/Response DTOs
 │   │   ├── State/                   # IAgentSessionStore implementations
 │   │   ├── Agents/                  # AgentRunner
+│   │   └── appsettings.json
+│   ├── MafStatefulApi.Web/          # Blazor Web UI
+│   │   ├── Program.cs               # Blazor Server configuration
+│   │   ├── Components/              # Blazor components
+│   │   │   ├── Pages/Chat.razor     # Interactive chat page
+│   │   │   ├── Pages/Home.razor     # Landing page
+│   │   │   └── Layout/              # Layout components
+│   │   ├── Services/                # API communication services
+│   │   │   └── ChatApiService.cs    # HTTP client for chat API
 │   │   └── appsettings.json
 │   └── MafStatefulApi.Client/       # Console demo client
 │       ├── Program.cs               # Service discovery demo

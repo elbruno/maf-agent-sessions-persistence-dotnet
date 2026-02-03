@@ -1,10 +1,11 @@
 # MAF Stateful Aspire Sample
 
-A production-ready sample demonstrating **state management for Microsoft Agent Framework (MAF) agents** hosted behind an ASP.NET Core Web API, using **.NET Aspire** for orchestration, service discovery, and infrastructure provisioning.
+A production-ready sample demonstrating **state management for Microsoft Agent Framework (MAF) agents** hosted behind an ASP.NET Core Web API, with a modern **Blazor Web UI** for interactive chat, using **.NET Aspire** for orchestration, service discovery, and infrastructure provisioning.
 
 ## ✨ Features
 
 - **Session Persistence**: Conversations survive across requests using Redis
+- **Blazor Web UI**: Modern, responsive chat interface with session management
 - **Local AI with Ollama**: Run AI models locally without cloud dependencies
 - **.NET Aspire Orchestration**: Simplified infrastructure with automatic service discovery
 - **Observability**: Built-in logging, tracing, and metrics
@@ -24,7 +25,11 @@ cd maf-agent-sessions-persistence-dotnet
 dotnet run --project src/MafStatefulApi.AppHost
 ```
 
-This starts Redis, Ollama (local AI), the API, and a demo client automatically.
+This starts Redis, Ollama (local AI), the API, a Blazor web UI, and a demo console client automatically.
+
+### Access the Web UI
+
+Open your browser and navigate to the Web UI endpoint shown in the Aspire dashboard (typically `https://localhost:7xxx`), then click on the "Chat" link to start conversing with the AI assistant.
 
 ### Test the API
 
@@ -38,7 +43,20 @@ curl -X POST http://localhost:5256/chat \
 curl -X POST http://localhost:5256/chat \
   -H "Content-Type: application/json" \
   -d '{"conversationId": "<id-from-above>", "message": "What is my name?"}'
+
+# List all active sessions
+curl http://localhost:5256/sessions
 ```
+
+## 🎨 Blazor Web UI Features
+
+The new Blazor Web UI provides:
+
+- **Session Selector**: Dropdown to switch between active conversation sessions
+- **Real-time Chat**: Interactive chat interface with typing indicators
+- **Session Management**: Create new sessions, switch between existing ones, and reset conversations
+- **Modern Design**: Gradient-themed UI with smooth animations and responsive layout
+- **Message History**: View complete conversation history for each session
 
 ## 📚 Documentation
 

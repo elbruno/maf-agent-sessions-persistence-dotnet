@@ -2,6 +2,7 @@ using MafStatefulApi.Api.Agents;
 using MafStatefulApi.Api.Endpoints;
 using MafStatefulApi.Api.State;
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Hosting;
 using Microsoft.Extensions.AI;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,42 +15,28 @@ builder.Services.AddOpenApi();
 
 // Configure Redis distributed cache for session persistence
 builder.AddRedisDistributedCache("cache");
+
+// Also register IConnectionMultiplexer for advanced Redis operations
+builder.AddRedisClient("cache");
+
 builder.Services.AddSingleton<IAgentSessionStore, RedisAgentSessionStore>();
 builder.Services.AddLogging(logging => logging.AddConsole());
 Console.WriteLine("Using Redis for session storage");
 
 // Configure Microsoft Agent Framework with Ollama
-// "chat-model" must match the model name defined in AppHost.cs (ollama.AddModel("chat-model", ...))
 builder.AddOllamaApiClient("chat-model").AddChatClient();
 Console.WriteLine("Using Ollama for AI model");
 
-// Create and register the agent directly on startup
-// The agent is stateless and shared across all requests
-builder.Services.AddSingleton<AIAgent>(sp =>
-{
-    var chatClient = sp.GetRequiredService<IChatClient>();
-    var logger = sp.GetRequiredService<ILogger<Program>>();
-
-    logger.LogInformation("Creating AIAgent on startup");
-
-    // Create the agent with predefined instructions
-    var agent = chatClient.CreateAIAgent(
-        instructions: """
-            You are a friendly and helpful AI assistant.
-            
-            Guidelines:
-            - Be concise and clear in your responses
-            - Remember context from previous messages in the conversation
-            - When asked about prior messages, reference the conversation history
-            - Use simple language that is easy to understand
-            - If you don't know something, say so honestly
-            """,
-        name: "AssistantAgent"
-    );
-
-    logger.LogInformation("AIAgent successfully created and registered");
-    return agent;
-});
+builder.AddAIAgent(
+    name: "AssistantAgent",
+    instructions: @"You are a friendly and helpful AI assistant.
+        Guidelines:
+        - Be concise and clear in your responses
+        - Remember context from previous messages in the conversation
+        - When asked about prior messages, reference the conversation history
+        - Use simple language that is easy to understand
+        - If you don't know something, say so honestly
+        ");
 
 // Register AgentRunner
 builder.Services.AddScoped<AgentRunner>();

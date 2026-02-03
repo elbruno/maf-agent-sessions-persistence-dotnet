@@ -27,4 +27,11 @@ public interface IAgentSessionStore
     /// <param name="conversationId">The unique conversation identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task DeleteAsync(string conversationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists all conversation IDs with stored sessions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A collection of conversation IDs.</returns>
+    Task<IEnumerable<string>> ListSessionsAsync(CancellationToken cancellationToken = default);
 }

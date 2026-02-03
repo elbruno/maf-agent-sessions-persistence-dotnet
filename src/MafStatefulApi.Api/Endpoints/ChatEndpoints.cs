@@ -76,6 +76,21 @@ public static class ChatEndpoints
         .WithName("ResetConversation")
         .WithDescription("Reset a conversation by deleting its session state");
 
+        // GET /sessions - List all active sessions
+        group.MapGet("/sessions", async (
+            IAgentSessionStore sessionStore,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            logger.LogInformation("Listing all active sessions");
+
+            var sessions = await sessionStore.ListSessionsAsync(cancellationToken);
+
+            return Results.Ok(new { sessions });
+        })
+        .WithName("ListSessions")
+        .WithDescription("List all active conversation sessions");
+
         return app;
     }
 }
