@@ -10,11 +10,13 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add HttpClient for API communication
-builder.Services.AddHttpClient("api", client =>
+// Add HttpClient for API communication with service discovery
+builder.Services.AddHttpClient("api", (serviceProvider, client) =>
 {
-    // This will be configured via service discovery
-});
+    // Use Aspire service discovery to resolve the API endpoint
+    client.BaseAddress = new Uri("http://api");
+})
+.AddStandardResilienceHandler();
 
 // Register ChatApiService
 builder.Services.AddScoped<ChatApiService>();

@@ -7,6 +7,7 @@ author: "Bruno Capuano"
 ---
 
 # 🤖 Never Lose Your AI Agent's Train of Thought  
+
 ### Persisting Microsoft Agent Framework Sessions with ASP.NET, Redis & Blazor
 
 Have you ever built a chat app where the AI forgets what you said *five seconds ago*? 😅  
@@ -498,6 +499,7 @@ dotnet run --project src/MafStatefulApi.AppHost
 ```
 
 This spins up:
+
 - **Redis** for session storage
 - **Ollama** with a local LLM (llama3.2:1b by default)
 - **API** at port 5256
@@ -547,6 +549,8 @@ Your AI stops acting like a goldfish and starts acting like… well, an actual a
 - **Microsoft Agent Framework**: [learn.microsoft.com/agent-framework](https://learn.microsoft.com/agent-framework/)
 - **.NET Aspire**: [learn.microsoft.com/dotnet/aspire](https://learn.microsoft.com/dotnet/aspire/)
 - **Ollama**: [ollama.ai](https://ollama.ai/)
+
+🎬 **Video walkthrough coming soon!** Subscribe to [youtube.com/elbruno](https://youtube.com/elbruno) to catch it when it drops.
 
 ---
 

@@ -1,9 +1,7 @@
 using MafStatefulApi.Api.Agents;
 using MafStatefulApi.Api.Endpoints;
 using MafStatefulApi.Api.State;
-using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Hosting;
-using Microsoft.Extensions.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +33,7 @@ builder.AddAIAgent(
         - Remember context from previous messages in the conversation
         - When asked about prior messages, reference the conversation history
         - Use simple language that is easy to understand
+        - If you know the name is the user, always use it in your responses
         - If you don't know something, say so honestly
         ");
 
