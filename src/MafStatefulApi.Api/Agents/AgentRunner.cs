@@ -17,7 +17,7 @@ public class AgentRunner
     private static readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
 
     public AgentRunner(
-        AIAgent agent,
+        [FromKeyedServices("AssistantAgent")] AIAgent agent,
         IAgentSessionStore sessionStore,
         ILogger<AgentRunner> logger)
     {
@@ -65,13 +65,13 @@ public class AgentRunner
         CancellationToken cancellationToken)
     {
         var serializedSession = await _sessionStore.GetAsync(conversationId, cancellationToken);
-
+        
         if (serializedSession is not null)
         {
             _logger.LogDebug(
                 "Deserializing existing session for conversation {ConversationId}",
                 conversationId);
-
+            
             try
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>(serializedSession, JsonOptions);
@@ -89,7 +89,7 @@ public class AgentRunner
         _logger.LogDebug(
             "Creating new session for conversation {ConversationId}",
             conversationId);
-
+        
         return await _agent.GetNewSessionAsync(cancellationToken);
     }
 
@@ -100,12 +100,12 @@ public class AgentRunner
     {
         var serializedElement = session.Serialize(JsonOptions);
         var serialized = serializedElement.GetRawText();
-
+        
         _logger.LogDebug(
             "Saving session for conversation {ConversationId}, serialized size: {SizeBytes} bytes",
             conversationId,
             serialized.Length);
-
+        
         await _sessionStore.SetAsync(conversationId, serialized, cancellationToken);
     }
 }
